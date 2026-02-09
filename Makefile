@@ -7,7 +7,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=luci-app-mini-diskmanager
+PKG_NAME:=luci-app-vsftpd
 PKG_VERSION:=2.0
 PKG_RELEASE:=20200423
 LUCI_TITLE:=LuCI JS Support for vsftpd (or very secure FTP daemon)
