@@ -1,7 +1,7 @@
-name: Build luci-app-vsftpd-wt
+name: Build luci-app-vsftpd-wt & Create Feed
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Nur manueller Start
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -9,6 +9,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Wichtig für das Deployment auf gh-pages
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -16,14 +19,27 @@ jobs:
       - name: Build Package
         uses: openwrt/gh-action-sdk@main
         env:
-          ARCH: x86_64 # Ein SDK reicht für PKGARCH:=all aus
+          ARCH: x86_64
           FEEDNAME: custom
-          PACKAGES: luci-app-vsftpd-wt 
+          PACKAGES: luci-app-vsftpd-wt
           IGNORE_ERRORS: y
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: luci-app-vsftpd-wt-apk
-          path: bin/packages/*/custom/*.apk
+      - name: Prepare Feed Directory
+        run: |
+          mkdir -p deploy/x86_64/custom
+          # Kopiere die gebauten APKs in den deploy-Ordner
+          cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
+          
+      - name: Generate APK Index
+        run: |
+          # Wir nutzen ein Docker-Container mit apk-tools, um den Index zu erstellen
+          docker run --rm -v ${{ github.workspace }}/deploy/x86_64/custom:/dir alpine:latest \
+            sh -c "apk index -o /dir/APKINDEX.tar.gz /dir/*.apk"
 
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          publish_branch: gh-pages
+          force_orphan: true # Erstellt jedes Mal einen sauberen Feed
