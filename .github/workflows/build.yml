@@ -1,10 +1,19 @@
 name: Build luci-app-tn-vsftpd
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Hier definierst du die Architekturen einzeln
+        arch: [kirkwood, x86_64, aarch64_generic, mipsel_24kc]
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -12,12 +21,14 @@ jobs:
       - name: Build Package
         uses: openwrt/gh-action-sdk@main
         env:
-          ARCH: [kirkwood, x86_64, aarch64_generic, mipsel_24kc, ramips_mt7621] # Wichtige Architekturen -  Ziel-Architektur (z.B. aarch64_generic)
+          ARCH: ${{ matrix.arch }}
           FEEDNAME: custom
           PACKAGES: luci-app-tn-vsftpd
+          # WICHTIG: Keine Listen unter env verwenden!
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-tn-vsftpd-apk
-          path: bin/packages/*/custom/*.apk # 25.12 nutzt .apk Dateien!
+          name: luci-app-tn-vsftpd-${{ matrix.arch }}
+          path: bin/packages/*/custom/*.apk
+
