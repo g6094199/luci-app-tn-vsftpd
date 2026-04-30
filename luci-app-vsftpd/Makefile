@@ -12,6 +12,10 @@ PKG_VERSION:=2.0.0
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Dein Name <deine@email.de>
 PKG_LICENSE:=Apache-2.0
+
+# WICHTIG: Verhindert den Download-Fehler
+PKG_SOURCE_PROTO:=none
+
 PKGARCH:=all
 
 include $(INCLUDE_DIR)/package.mk
@@ -19,7 +23,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/luci-app-tn-vsftpd
 	SECTION:=luci
 	CATEGORY:=LuCI
-	SUBMENU:=3. Applications
+    SUBMENU:=3. Applications
 	TITLE:=LuCI support for VSFTPD (Tano Systems)
 	DEPENDS:=+luci-base +vsftpd
 endef
@@ -32,14 +36,26 @@ define Package/luci-app-tn-vsftpd/conffiles
 /etc/config/vsftpd
 endef
 
+# WICHTIG: Da wir nichts kompilieren, müssen wir diese Schritte definieren
+define Build/Prepare
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+endef
+
 define Package/luci-app-tn-vsftpd/install
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
 	$(INSTALL_DIR) $(1)/usr/share/luci/resources/view/tn-vsftpd
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
-    $(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-tn-vsftpd.json $(1)/usr/share/luci/menu.d/
+	
+	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-tn-vsftpd.json $(1)/usr/share/luci/menu.d/
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-tn-vsftpd.json $(1)/usr/share/rpcd/acl.d/
+	# Falls deine JS-Dateien im Repo unter root/www/... liegen:
 	$(INSTALL_DATA) ./root/www/luci-static/resources/view/tn-vsftpd/*.js $(1)/usr/share/luci/resources/view/tn-vsftpd/
 	$(INSTALL_CONF) ./root/etc/config/vsftpd $(1)/etc/config/vsftpd
 	$(INSTALL_BIN) ./root/etc/init.d/vsftpd $(1)/etc/init.d/vsftpd
