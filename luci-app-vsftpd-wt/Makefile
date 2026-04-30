@@ -13,7 +13,6 @@ PKG_RELEASE:=1
 PKG_MAINTAINER:=Wi-Tech
 PKG_LICENSE:=Apache-2.0
 
-# Wichtig für lokale Repositories
 PKG_SOURCE_PROTO:=none
 
 include $(INCLUDE_DIR)/package.mk
@@ -24,13 +23,12 @@ define Package/luci-app-vsftpd-wt
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for VSFTPD (Wi-Tech Edition)
 	DEPENDS:=+luci-base +vsftpd
-	# HIER: Zwingend erforderlich für die apk-Kompatibilität auf allen Architekturen
 	PKGARCH:=all
 endef
 
 define Package/luci-app-vsftpd-wt/description
-	Modernisiertes LuCI-Modul für VSFTPD von Wi-Tech, 
-	optimiert für OpenWrt 25.12 und den apk-Standard.
+	Modernisiertes LuCI-Modul für VSFTPD. Nutzt die originale 
+	vsftpd-Konfiguration über ein Backup-System.
 endef
 
 define Package/luci-app-vsftpd-wt/conffiles
@@ -48,8 +46,9 @@ define Build/Compile
 endef
 
 define Package/luci-app-vsftpd-wt/install
+	# Erstellt die Basis-Verzeichnisse auf dem Router
+	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/vsftpd-wt
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
-	$(INSTALL_DIR) $(1)/usr/share/luci/resources/view/vsftpd-wt
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
 	$(INSTALL_DIR) $(1)/etc/config
 
@@ -64,10 +63,14 @@ endef
 define Package/luci-app-vsftpd-wt/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
+	# 1. Original-Config sichern
 	if [ -f "/etc/config/vsftpd" ] && [ ! -f "/etc/config/vsftpd.bak" ]; then
 		mv /etc/config/vsftpd /etc/config/vsftpd.bak
 	fi
+	# 2. WT-Config an die offizielle Stelle kopieren
+	# Achte darauf, dass die Datei im Repo unter root/etc/config/vsftpd.wt liegt
 	cp /etc/config/vsftpd.wt /etc/config/vsftpd
+	# 3. Dienst neu starten
 	/etc/init.d/vsftpd restart
 fi
 exit 0
@@ -76,6 +79,7 @@ endef
 define Package/luci-app-vsftpd-wt/prerm
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
+	# Originalzustand wiederherstellen
 	if [ -f "/etc/config/vsftpd.bak" ]; then
 		mv /etc/config/vsftpd.bak /etc/config/vsftpd
 	else
