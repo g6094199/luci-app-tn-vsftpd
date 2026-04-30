@@ -1,18 +1,14 @@
 {
-	"admin/services/ftp": {
-		"title": "FTP",
-		"order": 99,
+	"admin/services/vsftpd": {
+		"title": "FTP Server (WT)",
+		"order": 30,
 		"action": {
 			"type": "view",
-			"path": "vsftpd/vsftpd"
+			"path": "vsftpd-wt/vsftpd"
 		},
 		"depends": {
-			"acl": [
-				"luci-app-tn-vsftpd-config"
-			],
-			"uci": {
-				"vsftpd": true
-			}
+			"acl": [ "luci-app-vsftpd-wt" ],
+			"uci": {"vsftpd": true }
 		}
 	}
 }

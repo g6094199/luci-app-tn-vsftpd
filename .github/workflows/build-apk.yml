@@ -1,6 +1,10 @@
-name: Build luci-app-tn-vsftpd
+name: Build luci-app-vsftpd-wt
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
 
 jobs:
   build:
@@ -12,14 +16,13 @@ jobs:
       - name: Build Package
         uses: openwrt/gh-action-sdk@main
         env:
-          ARCH: x86_64 # Wir nehmen x86_64 als Referenz-SDK
+          ARCH: x86_64 # Ein SDK reicht für PKGARCH:=all aus
           FEEDNAME: custom
-          PACKAGES: luci-app-tn-vsftpd
+          PACKAGES: luci-app-vsftpd-wt # HIER: Dein neuer Paketname
 
-      - name: Upload Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-tn-vsftpd-universal
-          # Das Sternchen findet die "all.apk" im bin-Ordner
+          name: luci-app-vsftpd-wt-apk
           path: bin/packages/*/custom/*.apk
 
