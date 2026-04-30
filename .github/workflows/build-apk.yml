@@ -1,7 +1,7 @@
 name: Build luci-app-vsftpd-wt & Create Feed
 
 on:
-  workflow_dispatch: # Nur manueller Start
+  workflow_dispatch: # Ermöglicht den manuellen Start über den "Run workflow"-Button
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Wichtig für das Deployment auf gh-pages
+      contents: write # Erlaubt das Schreiben auf den gh-pages Branch
     
     steps:
       - name: Checkout Code
@@ -24,17 +24,23 @@ jobs:
           PACKAGES: luci-app-vsftpd-wt
           IGNORE_ERRORS: y
 
-      - name: Prepare Feed Directory
+      - name: Create Feed Index and Prepare Deploy
         run: |
-          mkdir -p deploy/x86_64/custom
-          # Kopiere die gebauten APKs in den deploy-Ordner
-          cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
+          # 1. In das Verzeichnis der gebauten Pakete wechseln
+          # Der Pfad im SDK-Container ist bin/packages/x86_64/custom
+          cd bin/packages/x86_64/custom
           
-      - name: Generate APK Index
-        run: |
-          # Wir nutzen ein Docker-Container mit apk-tools, um den Index zu erstellen
-          docker run --rm -v ${{ github.workspace }}/deploy/x86_64/custom:/dir alpine:latest \
-            sh -c "apk index --allow-untrusted -o /dir/APKINDEX.tar.gz /dir/*.apk"
+          # 2. Den Index mit dem SDK-internen APK-Tool erstellen
+          # Wir nutzen das Host-Tool des SDKs, da dieses das OpenWrt-Format versteht
+          ../../../../staging_dir/host/bin/apk index --allow-untrusted -o APKINDEX.tar.gz *.apk
+          
+          # 3. Zurück zum Hauptverzeichnis und Deploy-Ordner vorbereiten
+          cd ../../../../
+          mkdir -p deploy/x86_64/custom
+          
+          # 4. Dateien in den Deploy-Ordner kopieren
+          cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
+          cp bin/packages/x86_64/custom/APKINDEX.tar.gz deploy/x86_64/custom/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -42,4 +48,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./deploy
           publish_branch: gh-pages
-          force_orphan: true # Erstellt jedes Mal einen sauberen Feed
+          force_orphan: true
+
