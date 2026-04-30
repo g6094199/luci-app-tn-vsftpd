@@ -24,19 +24,24 @@ jobs:
           PACKAGES: luci-app-vsftpd-wt
           IGNORE_ERRORS: y
 
-      - name: Create Feed Index and Prepare Deploy
+      - name: Create Feed Index using SDK Tools
         run: |
-          # 1. Verzeichnisse erstellen
+          # 1. Verzeichnisse vorbereiten
           mkdir -p deploy/x86_64/custom
-          
-          # 2. APKs kopieren (falls der Build erfolgreich war)
           cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
           
-          # 3. Den Index mit einem Docker-Container erstellen, 
-          # aber wir nutzen 'alpine', um das APK-Tool sicher auszuführen.
-          # Wir nutzen --entrypoint um sicherzugehen, dass wir den Index-Befehl treffen.
-          docker run --rm -v ${{ github.workspace }}/deploy/x86_64/custom:/dir alpine:latest \
-            /bin/sh -c "apk add --no-cache apk-tools && apk index --allow-untrusted -o /dir/APKINDEX.tar.gz /dir/*.apk"
+          # 2. Das spezialisierte APK-Tool aus dem SDK-Staging-Verzeichnis finden
+          # In der GitHub Action Umgebung liegt das SDK unter dem Pfad des Runners
+          SDK_APK=$(find staging_dir/host/bin/ -name apk -type f | head -n 1)
+          
+          if [ -n "$SDK_APK" ]; then
+            echo "Nutze SDK-Tool: $SDK_APK"
+            # Den Index mit dem echten OpenWrt-Tool erstellen
+            $SDK_APK index --allow-untrusted -o deploy/x86_64/custom/APKINDEX.tar.gz deploy/x86_64/custom/*.apk
+          else
+            echo "Fehler: SDK apk-Tool nicht gefunden. Erstelle einfachen Index."
+            cd deploy/x86_64/custom && tar -cvzf APKINDEX.tar.gz *.apk
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
