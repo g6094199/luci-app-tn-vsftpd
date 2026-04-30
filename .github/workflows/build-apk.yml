@@ -1,7 +1,7 @@
 name: Build luci-app-vsftpd-wt & Create Feed
 
 on:
-  workflow_dispatch: # Ermöglicht den manuellen Start über den "Run workflow"-Button
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -10,35 +10,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Erlaubt das Schreiben auf den gh-pages Branch
+      contents: write
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Package
+      - name: Build Package and Create Index
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: x86_64
           FEEDNAME: custom
           PACKAGES: luci-app-vsftpd-wt
           IGNORE_ERRORS: y
+        with:
+          # Dieser Befehl läuft INNERHALB des SDK-Containers
+          commands: |
+            make package/luci-app-vsftpd-wt/compile
+            cd bin/packages/x86_64/custom
+            apk index --allow-untrusted -o APKINDEX.tar.gz *.apk
 
-      - name: Create Feed Index and Prepare Deploy
+      - name: Prepare Deploy Directory
         run: |
-          # 1. In das Verzeichnis der gebauten Pakete wechseln
-          # Der Pfad im SDK-Container ist bin/packages/x86_64/custom
-          cd bin/packages/x86_64/custom
-          
-          # 2. Den Index mit dem SDK-internen APK-Tool erstellen
-          # Wir nutzen das Host-Tool des SDKs, da dieses das OpenWrt-Format versteht
-          ../../../../staging_dir/host/bin/apk index --allow-untrusted -o APKINDEX.tar.gz *.apk
-          
-          # 3. Zurück zum Hauptverzeichnis und Deploy-Ordner vorbereiten
-          cd ../../../../
           mkdir -p deploy/x86_64/custom
-          
-          # 4. Dateien in den Deploy-Ordner kopieren
+          # Die Dateien liegen im Workspace-Verzeichnis, das vom SDK-Schritt befüllt wurde
           cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
           cp bin/packages/x86_64/custom/APKINDEX.tar.gz deploy/x86_64/custom/
 
