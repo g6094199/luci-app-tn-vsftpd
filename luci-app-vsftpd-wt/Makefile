@@ -13,10 +13,8 @@ PKG_RELEASE:=1
 PKG_MAINTAINER:=Wi-Tech
 PKG_LICENSE:=Apache-2.0
 
-# Verhindert den Download-Fehler im SDK, da der Code lokal im Repo liegt
+# Wichtig für lokale Repositories ohne externen Download
 PKG_SOURCE_PROTO:=none
-
-# Kennzeichnet das Paket als architekturunabhängig (funktioniert auf x86, Kirkwood, etc.)
 PKGARCH:=all
 
 include $(INCLUDE_DIR)/package.mk
@@ -31,16 +29,16 @@ endef
 
 define Package/luci-app-vsftpd-wt/description
 	Modernisiertes LuCI-Modul für VSFTPD, optimiert für OpenWrt 25.12 
-	durch Wi-Tech. Bietet eine grafische Oberfläche zur Verwaltung 
-	des FTP-Servers.
+	durch Wi-Tech.
 endef
 
 define Package/luci-app-vsftpd-wt/conffiles
 /etc/config/vsftpd
 endef
 
-# Da es sich um eine reine LuCI-App handelt, ist keine Kompilierung nötig
+# Bereitet das Build-Verzeichnis vor, damit das SDK nicht abbricht
 define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
 endef
 
 define Build/Configure
@@ -56,20 +54,17 @@ define Package/luci-app-vsftpd-wt/install
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
 
-	# Menü-Konfiguration
-	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-vsftpd-wt.json $(1)/usr/share/luci/menu.d/
-	
-	# Zugriffsrechte (ACL)
-	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-vsftpd-wt.json $(1)/usr/share/rpcd/acl.d/
-	
-	# JavaScript Views (Das UI für den Browser)
-	$(INSTALL_DATA) ./root/usr/share/luci/resources/view/vsftpd-wt/*.js $(1)/usr/share/luci/resources/view/vsftpd-wt/
-	
-	# UCI Konfigurationsdatei
-	$(INSTALL_CONF) ./root/etc/config/vsftpd $(1)/etc/config/vsftpd
-	
-	# Init-Skript (muss ausführbar sein -> INSTALL_BIN)
-	$(INSTALL_BIN) ./root/etc/init.d/vsftpd $(1)/etc/init.d/vsftpd
+	# Menü & ACL
+	$(INSTALL_DATA) $(CURDIR)/root/usr/share/luci/menu.d/luci-app-vsftpd-wt.json $(1)/usr/share/luci/menu.d/
+	$(INSTALL_DATA) $(CURDIR)/root/usr/share/rpcd/acl.d/luci-app-vsftpd-wt.json $(1)/usr/share/rpcd/acl.d/
+
+	# JavaScript Views (Pfade basierend auf deiner neuen Struktur)
+	# Falls die JS-Dateien in root/usr/share/... liegen:
+	$(INSTALL_DATA) $(CURDIR)/root/usr/share/luci/resources/view/vsftpd-wt/*.js $(1)/usr/share/luci/resources/view/vsftpd-wt/
+
+	# Konfiguration & Init-Skript
+	$(INSTALL_CONF) $(CURDIR)/root/etc/config/vsftpd $(1)/etc/config/vsftpd
+	$(INSTALL_BIN) $(CURDIR)/root/etc/init.d/vsftpd $(1)/etc/init.d/vsftpd
 endef
 
 $(eval $(call BuildPackage,luci-app-vsftpd-wt))
