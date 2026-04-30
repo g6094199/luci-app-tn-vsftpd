@@ -34,7 +34,7 @@ jobs:
         run: |
           # Wir nutzen ein Docker-Container mit apk-tools, um den Index zu erstellen
           docker run --rm -v ${{ github.workspace }}/deploy/x86_64/custom:/dir alpine:latest \
-            sh -c "apk index -o /dir/APKINDEX.tar.gz /dir/*.apk"
+            sh -c "apk index --allow-untrusted -o /dir/APKINDEX.tar.gz /dir/*.apk"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
