@@ -67,10 +67,15 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	if [ -f "/etc/config/vsftpd" ] && [ ! -f "/etc/config/vsftpd.bak" ]; then
 		mv /etc/config/vsftpd /etc/config/vsftpd.bak
 	fi
-	# 2. WT-Config an die offizielle Stelle kopieren
+    # 2. WT-Config an die offizielle Stelle kopieren
 	# Achte darauf, dass die Datei im Repo unter root/etc/config/vsftpd.wt liegt
 	cp /etc/config/vsftpd.wt /etc/config/vsftpd
-	# 3. Dienst neu starten
+    # 3. LuCI-Cache leeren (damit das Menü sofort erscheint)
+	rm -rf /tmp/luci-indexcache /tmp/luci-modulecache
+	# 4. Dienste neu starten / laden
+	/etc/init.d/rpcd restart
+	/etc/init.d/uhttpd restart
+	/etc/init.d/vsftpd enable
 	/etc/init.d/vsftpd restart
 fi
 exit 0
@@ -85,6 +90,10 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	else
 		rm -f /etc/config/vsftpd
 	fi
+	# 2. Cache bereinigen damit das Menü verschwindet
+	rm -f /tmp/luci-indexcache /tmp/luci-modulecache
+	/etc/init.d/rpcd restart
+	/etc/init.d/uhttpd restart
 	/etc/init.d/vsftpd restart
 fi
 exit 0
