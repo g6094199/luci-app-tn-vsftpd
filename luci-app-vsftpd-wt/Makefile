@@ -25,6 +25,7 @@ define Package/luci-app-vsftpd-wt
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for VSFTPD (Wi-Tech Edition)
 	DEPENDS:=+luci-base +vsftpd
+	PKGARCH:=all
 endef
 
 define Package/luci-app-vsftpd-wt/description
