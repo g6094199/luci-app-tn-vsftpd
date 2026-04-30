@@ -16,26 +16,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Package and Create Index
+      - name: Build Package
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: x86_64
           FEEDNAME: custom
           PACKAGES: luci-app-vsftpd-wt
           IGNORE_ERRORS: y
-        with:
-          # Dieser Befehl läuft INNERHALB des SDK-Containers
-          commands: |
-            make package/luci-app-vsftpd-wt/compile
-            cd bin/packages/x86_64/custom
-            apk index --allow-untrusted -o APKINDEX.tar.gz *.apk
 
-      - name: Prepare Deploy Directory
+      - name: Create Feed Index and Prepare Deploy
         run: |
+          # 1. Verzeichnisse erstellen
           mkdir -p deploy/x86_64/custom
-          # Die Dateien liegen im Workspace-Verzeichnis, das vom SDK-Schritt befüllt wurde
+          
+          # 2. APKs kopieren (falls der Build erfolgreich war)
           cp bin/packages/x86_64/custom/*.apk deploy/x86_64/custom/
-          cp bin/packages/x86_64/custom/APKINDEX.tar.gz deploy/x86_64/custom/
+          
+          # 3. Den Index mit einem Docker-Container erstellen, 
+          # aber wir nutzen 'alpine', um das APK-Tool sicher auszuführen.
+          # Wir nutzen --entrypoint um sicherzugehen, dass wir den Index-Befehl treffen.
+          docker run --rm -v ${{ github.workspace }}/deploy/x86_64/custom:/dir alpine:latest \
+            /bin/sh -c "apk add --no-cache apk-tools && apk index --allow-untrusted -o /dir/APKINDEX.tar.gz /dir/*.apk"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
