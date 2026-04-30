@@ -1,3 +1,5 @@
+![Build Status](https://github.com)
+
 # LuCI support for VSFTPd server
 
 ## Description
