@@ -1,6 +1,6 @@
 ![Build Status](https://github.com)
 
-# LuCI support for VSFTPd server
+# LuCI support for VSFTPd server by Wi-Tech
 
 ## Description
 This application allows you to configure VSFTPd server over LuCI web interface.
@@ -18,13 +18,11 @@ in [meta-tanowrt](https://github.com/tano-systems/meta-tanowrt.git) OpenEmbedded
 
 ## Supported languages
 - English
-- Russian
+- German
+- tbd
 
 ## Supported (tested) LuCI Themes
-- [luci-theme-tano](https://github.com/tano-systems/luci-theme-tano) ([screenshots](#screenshots) are taken with this theme)
-- luci-theme-bootstrap
-- luci-theme-openwrt-2020
-- luci-theme-openwrt
+- tbd
 
 ## Screenshots
 
