@@ -57,7 +57,7 @@ define Package/luci-app-vsftpd-wt/install
 
 	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-vsftpd-wt.json $(1)/usr/share/luci/menu.d/
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-vsftpd-wt.json $(1)/usr/share/rpcd/acl.d/
-	$(INSTALL_DATA) ./root/usr/share/luci/resources/view/vsftpd-wt/*.js $(1)/usr/share/luci/resources/view/vsftpd-wt/
+	$(INSTALL_DATA) ./root/www/luci-static/resources/view/vsftpd-wt/*.js $(1)/www/luci-static/resources/view/vsftpd-wt/
 endef
 
 define Package/luci-app-vsftpd-wt/postinst
